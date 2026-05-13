@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초등 수학 - 두 자리 수 덧셈 연습</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        /* A4 사이즈 시뮬레이션 및 인쇄 설정 */
+        @media print {
+            body { background-color: white; }
+            .no-print { display: none !important; }
+            .print-area {
+                width: 210mm;
+                height: 297mm;
+                padding: 20mm;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+            }
+            .problem-card {
+                break-inside: avoid;
+                border: 2px solid #e2e8f0 !important;
+            }
+        }
+
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px 30px;
+        }
+
+        .check-correct { color: #10b981; font-weight: bold; }
+        .check-wrong { color: #ef4444; font-weight: bold; }
+        
+        /* 새롭게 추가된 계산 그리드 및 입력 스타일 */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            gap: 0;
+            align-items: center;
+        }
+        
+        .digit-input {
+            width: 44px;
+            height: 56px;
+            text-align: center;
+            font-size: 2rem;
+            font-family: monospace;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            background: white;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .digit-input:focus {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen p-4">
+
+    <div id="start-screen" class="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl text-center mt-20">
+        <div class="mb-6">
+            <div class="text-5xl mb-4">🧮</div>
+            <h1 class="text-2xl font-extrabold text-slate-800 mb-2">두 자리 수 덧셈 연습</h1>
+            <p class="text-slate-500">매일 6문제씩 실력을 키워봐요!</p>
+        </div>
+        <button onclick="startApp()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
+            시작하기
+        </button>
+    </div>
+
+    <div id="main-app" class="hidden w-full max-w-5xl flex flex-col items-center">
+        
+        <!-- 상단 컨트롤 바 (인쇄 안됨) -->
+        <div class="no-print flex flex-wrap gap-3 mb-8 bg-white p-4 rounded-xl shadow-sm sticky top-4 z-10 border border-slate-200">
+            <button onclick="generateProblems()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2 rounded-lg font-bold flex items-center gap-2 transition">
+                <span>🔄</span> 새 문제 만들기
+            </button>
+            <button onclick="checkAnswers()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-lg font-bold flex items-center gap-2 transition">
+                <span>✅</span> 정답 확인
+            </button>
+            <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-2 rounded-lg font-bold flex items-center gap-2 transition">
+                <span>🖨️</span> 인쇄 / PDF 저장
+            </button>
+            
+            <!-- 타이머 디스플레이 영역 추가 -->
+            <div id="timer-display" class="ml-4 flex items-center text-lg font-mono font-bold text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
+                ⏱️ 00:00
+            </div>
+            
+            <div id="score-display" class="ml-auto flex items-center text-lg font-bold text-slate-700"></div>
+        </div>
+
+        <!-- A4 학습지 영역 -->
+        <div class="a4-container print-area">
+            <header class="flex justify-between items-end border-b-4 border-double border-slate-300 pb-4 mb-10">
+                <div>
+                    <h1 class="text-3xl font-black text-slate-800">초등 수학 활동지</h1>
+                    <p class="text-slate-500 mt-1">[ 두 자리 수 + 두 자리 수 덧셈 ]</p>
+                </div>
+                <div class="text-right text-slate-600 space-y-1">
+                    <div class="flex gap-4">
+                        <span class="border-b border-slate-400 w-24 inline-block text-center text-sm">년 &nbsp; 월 &nbsp; 일</span>
+                        <span class="border-b border-slate-400 w-32 inline-block text-center text-sm">이름: _________</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="problem-container" class="problem-grid">
+                <!-- 문제는 JavaScript에서 동적으로 생성됩니다. -->
+            </div>
+
+            <footer class="absolute bottom-10 left-0 right-0 text-center text-slate-400 text-xs">
+                매일 매일 성장하는 수학 시간 | AI 수학 생성기
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        let problems = [];
+        let timerInterval;
+        let secondsElapsed = 0;
+
+        // 타이머 관련 함수
+        function startTimer() {
+            clearInterval(timerInterval);
+            secondsElapsed = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+            const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerHTML = `⏱️ ${mins}:${secs}`;
+        }
+
+        // 입력 포커스 자동 이동 함수 (OTP 스타일)
+        function handleInput(current, nextId) {
+            current.value = current.value.replace(/[^0-9]/g, ''); // 숫자만 입력 허용
+            if (current.value.length === 1 && nextId) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        function handleKeydown(event, currentId, prevId) {
+            if (event.key === 'Backspace' && document.getElementById(currentId).value === '' && prevId) {
+                event.preventDefault(); // 기본 백스페이스 동작 방지
+                const prevElement = document.getElementById(prevId);
+                prevElement.focus();
+                prevElement.value = ''; // 이동한 이전 칸 비워주기
+            }
+        }
+
+        // 초기 시작 함수
+        function startApp() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            generateProblems();
+        }
+
+        // 문제 생성 함수
+        function generateProblems() {
+            const container = document.getElementById('problem-container');
+            const scoreDisplay = document.getElementById('score-display');
+            container.innerHTML = '';
+            scoreDisplay.innerHTML = '';
+            problems = [];
+            
+            startTimer(); // 문제 생성 시 타이머 시작
+
+            for (let i = 1; i <= 6; i++) {
+                // 10 ~ 99 사이의 랜덤 숫자 생성
+                const num1 = Math.floor(Math.random() * 90) + 10;
+                const num2 = Math.floor(Math.random() * 90) + 10;
+                const answer = num1 + num2;
+                
+                // 각 자리수 분리 (그리드 배치를 위함)
+                const n1t = Math.floor(num1 / 10);
+                const n1o = num1 % 10;
+                const n2t = Math.floor(num2 / 10);
+                const n2o = num2 % 10;
+
+                problems.push({ num1, num2, answer });
+
+                const problemDiv = document.createElement('div');
+                problemDiv.className = 'problem-card p-6 border-2 border-slate-100 rounded-2xl relative flex flex-col items-center justify-center bg-white';
+                problemDiv.innerHTML = `
+                    <div class="absolute left-6 top-6 text-slate-300 font-bold text-xl">${i}.</div>
+                    
+                    <div class="calc-grid text-4xl font-mono text-slate-800 relative mt-4">
+                        <!-- 1번째 줄 (첫 번째 숫자) -->
+                        <div class="py-3 border-r-2 border-dashed border-slate-200"></div>
+                        <div class="py-3 text-center border-r-2 border-dashed border-slate-200">${n1t}</div>
+                        <div class="py-3 text-center">${n1o}</div>
+
+                        <!-- 2번째 줄 (연산자와 두 번째 숫자) -->
+                        <div class="py-3 text-center border-r-2 border-dashed border-slate-200 text-3xl text-slate-500 font-sans">+</div>
+                        <div class="py-3 text-center border-r-2 border-dashed border-slate-200">${n2t}</div>
+                        <div class="py-3 text-center">${n2o}</div>
+
+                        <!-- 가로 실선 -->
+                        <div class="col-span-3 border-b-4 border-slate-800 my-1"></div>
+
+                        <!-- 3번째 줄 (정답 입력칸) -->
+                        <div class="py-3 h-20 flex items-center justify-center border-r-2 border-dashed border-slate-200">
+                            <input type="text" maxlength="1" id="ans-h-${i}" class="digit-input no-print" oninput="handleInput(this, 'ans-t-${i}')" onkeydown="handleKeydown(event, 'ans-h-${i}', null)">
+                            <span id="print-h-${i}" class="hidden print:flex items-center justify-center text-4xl w-full h-full"></span>
+                        </div>
+                        <div class="py-3 h-20 flex items-center justify-center border-r-2 border-dashed border-slate-200">
+                            <input type="text" maxlength="1" id="ans-t-${i}" class="digit-input no-print" oninput="handleInput(this, 'ans-o-${i}')" onkeydown="handleKeydown(event, 'ans-t-${i}', 'ans-h-${i}')">
+                            <span id="print-t-${i}" class="hidden print:flex items-center justify-center text-4xl w-full h-full"></span>
+                        </div>
+                        <div class="py-3 h-20 flex items-center justify-center">
+                            <input type="text" maxlength="1" id="ans-o-${i}" class="digit-input no-print" oninput="handleInput(this, null)" onkeydown="handleKeydown(event, 'ans-o-${i}', 'ans-t-${i}')">
+                            <span id="print-o-${i}" class="hidden print:flex items-center justify-center text-4xl w-full h-full"></span>
+                        </div>
+                    </div>
+                    
+                    <div id="feedback-${i}" class="text-xl mt-4 h-8 flex items-center justify-center w-full"></div>
+                `;
+                container.appendChild(problemDiv);
+            }
+        }
+
+        function checkAnswers() {
+            stopTimer(); // 정답 확인 시 타이머 정지
+            let score = 0;
+            
+            problems.forEach((p, index) => {
+                const i = index + 1;
+                // 각 자리수 입력값 가져오기 (비어있으면 0으로 처리)
+                const hVal = document.getElementById(`ans-h-${i}`).value || '0';
+                const tVal = document.getElementById(`ans-t-${i}`).value || '0';
+                const oVal = document.getElementById(`ans-o-${i}`).value || '0';
+
+                // 세 칸 모두 비어있는 경우 무시
+                if (document.getElementById(`ans-h-${i}`).value === '' && 
+                    document.getElementById(`ans-t-${i}`).value === '' && 
+                    document.getElementById(`ans-o-${i}`).value === '') {
+                    return;
+                }
+
+                // 입력된 자리수들을 합쳐 하나의 숫자로 변환
+                const userAnswer = parseInt(hVal, 10) * 100 + parseInt(tVal, 10) * 10 + parseInt(oVal, 10);
+                const feedback = document.getElementById(`feedback-${i}`);
+
+                if (userAnswer === p.answer) {
+                    feedback.innerHTML = '⭕';
+                    feedback.className = 'text-xl mt-4 h-8 flex items-center justify-center w-full check-correct';
+                    score++;
+                } else {
+                    feedback.innerHTML = `❌ <span class="ml-2 text-sm font-normal text-slate-500">정답: ${p.answer}</span>`;
+                    feedback.className = 'text-xl mt-4 h-8 flex items-center justify-center w-full check-wrong';
+                }
+            });
+
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.innerHTML = `참 잘했어요! <span class="ml-2 text-blue-600">${score} / 6</span>`;
+        }
+
+        // 입력값이 바뀌면 인쇄용 영역도 업데이트
+        document.addEventListener('input', (e) => {
+            if (e.target.classList.contains('digit-input')) {
+                const idParts = e.target.id.split('-');
+                const printAns = document.getElementById(`print-${idParts[1]}-${idParts[2]}`);
+                if (printAns) printAns.innerText = e.target.value;
+            }
+        });
+    </script>
+</body>
+</html>
